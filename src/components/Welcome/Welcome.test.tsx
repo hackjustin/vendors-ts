@@ -2,8 +2,8 @@ import { render, screen } from '@test-utils';
 import { Welcome } from './Welcome';
 
 describe('Welcome component', () => {
-  it('has correct Vite guide link', () => {
+  it('has correct welcome title', () => {
     render(<Welcome />);
-    expect(screen.getByText('Add, Update and Delete your vendors here.'));
+    expect(screen.getByText('VENDORS'));
   });
 });

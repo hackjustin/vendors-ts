@@ -207,8 +207,8 @@ export function TableScrollArea() {
 
   return (
     <ScrollArea
-      pl={'3rem'}
-      pr={'3rem'}
+      pl="3rem"
+      pr="3rem"
       h={300}
       onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
     >

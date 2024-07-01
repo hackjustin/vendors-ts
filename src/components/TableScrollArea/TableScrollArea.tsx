@@ -206,7 +206,12 @@ export function TableScrollArea() {
   ));
 
   return (
-    <ScrollArea h={300} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
+    <ScrollArea
+      pl="3rem"
+      pr="3rem"
+      h={300}
+      onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+    >
       <Table miw={700}>
         <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <Table.Tr>

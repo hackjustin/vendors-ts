@@ -1,9 +1,20 @@
 import cx from 'clsx';
-import { useState } from 'react';
-import { Table, ScrollArea } from '@mantine/core';
+import React, { useState } from 'react';
+import {
+  Table,
+  ScrollArea,
+  UnstyledButton,
+  Group,
+  Text,
+  Center,
+  TextInput,
+  rem,
+  keys,
+} from '@mantine/core';
+import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons-react';
 import classes from './TableScrollArea.module.css';
 
-const vendors = [
+const vendorData = [
   {
     name: 'Athena Weissnat',
     company: 'Little - Rippin',
@@ -186,22 +197,93 @@ const vendors = [
   },
 ];
 
-type Vendor = {
+interface RowData {
   name: string;
   email: string;
   company: string;
   category: string;
-};
+}
+
+interface ThProps {
+  children: React.ReactNode;
+  reversed: boolean;
+  sorted: boolean;
+  onSort: () => void;
+}
+
+function Th({ children, reversed, sorted, onSort }: ThProps) {
+  const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
+  return (
+    <Table.Th className={classes.th}>
+      <UnstyledButton onClick={onSort} className={classes.control}>
+        <Group justify="space-between">
+          <Text fw={500} fz="sm">
+            {children}
+          </Text>
+          <Center className={classes.icon}>
+            <Icon style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+          </Center>
+        </Group>
+      </UnstyledButton>
+    </Table.Th>
+  );
+}
+
+function filterData(data: RowData[], search: string) {
+  const query = search.toLowerCase().trim();
+  return data.filter((item) =>
+    keys(data[0]).some((key) => item[key].toLowerCase().includes(query))
+  );
+}
+
+function sortData(
+  data: RowData[],
+  payload: { sortBy: keyof RowData | null; reversed: boolean; search: string }
+) {
+  const { sortBy } = payload;
+
+  if (!sortBy) {
+    return filterData(data, payload.search);
+  }
+
+  return filterData(
+    [...data].sort((a, b) => {
+      if (payload.reversed) {
+        return b[sortBy].localeCompare(a[sortBy]);
+      }
+
+      return a[sortBy].localeCompare(b[sortBy]);
+    }),
+    payload.search
+  );
+}
 
 export function TableScrollArea() {
   const [scrolled, setScrolled] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sortedData, setSortedData] = useState(vendorData);
+  const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
+  const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
-  const rows = vendors.map((vendor: Vendor) => (
-    <Table.Tr key={vendor.name}>
-      <Table.Td>{vendor.name}</Table.Td>
-      <Table.Td>{vendor.email}</Table.Td>
-      <Table.Td>{vendor.company}</Table.Td>
-      <Table.Td>{vendor.category}</Table.Td>
+  const setSorting = (field: keyof RowData) => {
+    const reversed = field === sortBy ? !reverseSortDirection : false;
+    setReverseSortDirection(reversed);
+    setSortBy(field);
+    setSortedData(sortData(vendorData, { sortBy: field, reversed, search }));
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.currentTarget;
+    setSearch(value);
+    setSortedData(sortData(vendorData, { sortBy, reversed: reverseSortDirection, search: value }));
+  };
+
+  const rows = sortedData.map((row) => (
+    <Table.Tr key={row.name}>
+      <Table.Td>{row.name}</Table.Td>
+      <Table.Td>{row.email}</Table.Td>
+      <Table.Td>{row.company}</Table.Td>
+      <Table.Td>{row.category}</Table.Td>
     </Table.Tr>
   ));
 
@@ -212,16 +294,59 @@ export function TableScrollArea() {
       h={300}
       onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
     >
+      <TextInput
+        placeholder="Search by any field"
+        mb="md"
+        leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
+        value={search}
+        onChange={handleSearchChange}
+      />
       <Table miw={700}>
         <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Email</Table.Th>
-            <Table.Th>Company</Table.Th>
-            <Table.Th>Category</Table.Th>
+            <Th
+              sorted={sortBy === 'name'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('name')}
+            >
+              Name
+            </Th>
+            <Th
+              sorted={sortBy === 'email'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('email')}
+            >
+              Email
+            </Th>
+            <Th
+              sorted={sortBy === 'company'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('company')}
+            >
+              Company
+            </Th>
+            <Th
+              sorted={sortBy === 'category'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('category')}
+            >
+              Category
+            </Th>
           </Table.Tr>
         </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
+        <Table.Tbody>
+          {rows.length > 0 ? (
+            rows
+          ) : (
+            <Table.Tr>
+              <Table.Td colSpan={Object.keys(vendorData[0]).length}>
+                <Text fw={500} ta="center">
+                  Nothing found
+                </Text>
+              </Table.Td>
+            </Table.Tr>
+          )}
+        </Table.Tbody>
       </Table>
     </ScrollArea>
   );

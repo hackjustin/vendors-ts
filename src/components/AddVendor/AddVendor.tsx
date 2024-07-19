@@ -29,7 +29,11 @@ export function AddVendor({ onSave }: AddVendorProps) {
   });
 
   return (
-    <form onSubmit={form.onSubmit((e) => { onSave(e); })}>
+    <form
+      onSubmit={form.onSubmit((e) => {
+        onSave(e);
+      })}
+    >
       <TextInput
         label="Name"
         placeholder="Your name"

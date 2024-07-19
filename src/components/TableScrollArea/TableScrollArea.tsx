@@ -143,7 +143,13 @@ export function TableScrollArea() {
               />
             </Grid.Col>
             <Grid.Col span={2}>
-              <Button className={classes.button} color="orange" onClick={handleAddVendorButtonClick}>Add Vendor</Button>
+              <Button
+                className={classes.button}
+                color="orange"
+                onClick={handleAddVendorButtonClick}
+              >
+                Add Vendor
+              </Button>
             </Grid.Col>
           </Grid>
           <Grid>

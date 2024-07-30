@@ -1,5 +1,5 @@
 import cx from 'clsx';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   ScrollArea,
@@ -18,7 +18,6 @@ import {
 import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons-react';
 import { AddVendor } from '../AddVendor/AddVendor';
 import classes from './TableScrollArea.module.css';
-import { vendorData } from './mockData';
 
 interface RowData {
   name: string;
@@ -81,6 +80,8 @@ function sortData(
   );
 }
 
+const vendorData = JSON.parse(localStorage.getItem('vendorData') || '[]');
+
 export function TableScrollArea() {
   const [scrolled, setScrolled] = useState(false);
   const [search, setSearch] = useState('');
@@ -88,13 +89,6 @@ export function TableScrollArea() {
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
   const [noTransitionOpened, setNoTransitionOpened] = useState(false);
-
-  const setSorting = (field: keyof RowData) => {
-    const reversed = field === sortBy ? !reverseSortDirection : false;
-    setReverseSortDirection(reversed);
-    setSortBy(field);
-    setSortedData(sortData(vendorData, { sortBy: field, reversed, search }));
-  };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.currentTarget;
@@ -112,7 +106,19 @@ export function TableScrollArea() {
     setNoTransitionOpened(false);
   };
 
-  const rows = sortedData.map((row) => (
+  const setSorting = (field: keyof RowData) => {
+    const reversed = field === sortBy ? !reverseSortDirection : false;
+    setReverseSortDirection(reversed);
+    setSortBy(field);
+    setSortedData(sortData(vendorData, { sortBy: field, reversed, search }));
+  };
+
+  useEffect(() => {
+    if (vendorData.length === 0) return;
+    localStorage.setItem('vendorData', JSON.stringify(vendorData));
+  }, [sortedData]);
+
+  const rows = sortedData.map((row: RowData) => (
     <Table.Tr key={row.name}>
       <Table.Td>{row.name}</Table.Td>
       <Table.Td>{row.email}</Table.Td>
@@ -192,7 +198,9 @@ export function TableScrollArea() {
                     rows
                   ) : (
                     <Table.Tr>
-                      <Table.Td colSpan={Object.keys(vendorData[0]).length}>
+                      <Table.Td
+                        colSpan={vendorData.length > 0 ? Object.keys(vendorData[0]).length : 4}
+                      >
                         <Text fw={500} ta="center">
                           Nothing found
                         </Text>
